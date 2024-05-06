@@ -1,0 +1,593 @@
+/* Reset default browser styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Global styles */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #F7F7F7;
+  font-family: Arial, sans-serif;
+}
+
+/* Top bar styles */
+.top-bar {
+  background-color: #ffffff;
+  color: #2B4B1E;
+  padding-left: 30px;
+  text-align: left;
+  position: fixed;
+  top: 0;
+  left: 205px;
+  width: calc(100% - 205px); /* Adjust width to account for left bar */
+  height: 70px;
+  display: flex; /* Use flexbox */
+  align-items: center; /* Center vertically */
+  z-index: 1000;
+}
+
+.top-bar h1 {
+  margin: 0;
+}
+
+#logo1 {
+  height: 100px; /* Adjust logo height as needed */
+  width: auto; /* Maintain aspect ratio */
+  align-items: center;
+  padding-bottom: 10px;
+}
+
+/* Left bar styles */
+.left-bar {
+  background-color: #ffffff;
+  color: #fff;
+  width: 200px;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding: 30px;
+}
+
+.left-bar ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.left-bar ul li {
+  margin-bottom: 10px;
+}
+
+.left-bar ul li a {
+  color: #92956F;
+  text-decoration: none;
+  border-radius: 30px;
+  padding: 6px 12px;
+}
+
+.left-bar ul li a:hover,
+.left-bar ul li a.active {
+  background: #a8a8a8;
+  color: #ffffff;
+}
+
+/* Content styles */
+.content {
+  margin-left: 200px;
+  padding: 20px;
+}
+
+.App-header {
+  margin-top: 150px;
+  margin-left: 300px;
+  width: fit-content; /* Set width to fit content horizontally */
+}
+
+
+.App-header h2 {
+  font-size: 24px; /* Adjust as needed */
+  color: #92956F; /* Adjust as needed */
+}
+
+.App-header p {
+  font-size: 16px; /* Adjust as needed */
+  color: #666; /* Adjust as needed */
+}
+
+
+/* About.css */
+
+.About-header {
+  background-color: #f0f0f0;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
+  width: 80%; 
+  max-width: fit-content;
+  margin-top: 100px ; 
+  margin-left: 250px ;
+  text-align: center; 
+}
+
+.About-header h2 {
+  font-size: 32px;
+  color: #333; 
+  margin-bottom: 20px; 
+}
+
+.About-header p {
+  font-size: 18px; 
+  color: #666; 
+  line-height: 30px;
+  margin-bottom: 10px;
+}
+
+.About-team {
+  background-color: #f0f0f0;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
+  width: 80%; 
+  max-width: 800px;
+  margin-top: 30px ; 
+  margin-left: 460px ;
+  text-align: center; 
+}
+
+.About-team h2 {
+  font-size: 28px;
+  color: #333;
+  margin-top: 30px;
+}
+
+.About-team h3 {
+  font-size: 24px;
+  line-height: 30px;
+  margin-bottom: 20px;
+  margin-top: 60px;
+}
+
+.About-team h4 {
+  font-size: 24px;
+  line-height: 30px;
+  margin-bottom: 20px;
+  margin-top: 40px;
+}
+
+.About-team p {
+  font-size: 18px; 
+  color: #666; 
+  line-height: 30px;
+  margin-bottom: 10px;
+}
+
+
+/* Search bar container styles */
+.search-bar-container {
+  background-color: #e0e0e0;
+  position: absolute;
+  width: calc(100vw - 260px); /* 100vw minus left bar width */
+  top: 80px;
+  left: 260px;
+  padding: 30px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+}
+
+/* Create event popup styles */
+.create-event-popup {
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  padding: 20px;
+  position: fixed;
+  top: 20px; /* Adjust top margin */
+  bottom: 20px; /* Adjust bottom margin */
+  left: 50%; /* Center horizontally */
+  transform: translateX(-50%); /* Center horizontally */
+  z-index: 1000; /* Ensure it's on top of other content */
+  max-height: calc(100vh - 40px); /* Limit maximum height to fit within margins */
+  overflow-y: auto; /* Enable vertical scroll if content exceeds maximum height */
+}
+
+/* CSS for submit button */
+.create-event-popup button[type="submit"] {
+  background-color: #92956F;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 20px; /* Adjust top margin */
+}
+/* CSS for form labels and inputs */
+.create-event-popup label {
+  display: block;
+  margin-bottom: 10px;
+}
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+.create-event-popup select {
+  width: 100%;
+  height: auto;
+  padding: 5px;
+  margin-top: 10px;
+}
+
+.create-event-popup input[type="text"],
+.create-event-popup input[type="date"],
+.create-event-popup textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+}
+
+
+.create-event-popup button[type="submit"]:hover {
+  background-color: #253e0d;
+}
+
+/* CSS for thank you message and create another event button */
+.create-event-popup .thank-you-message {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.create-event-popup .thank-you-message button {
+  background-color: #008CBA;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.create-event-popup .thank-you-message button:hover {
+  background-color: #0073e6;
+}
+
+/* Adjust left bar button position and styles */
+.left-bar button {
+  position: relative;
+  z-index: 2; /* Ensure it's above other content */
+  background-color: #92956F;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  top: 300px;
+  overflow: hidden;
+  font-size: 15px;
+}
+.left-bar button::after {
+  content: ''; 
+  position: absolute; 
+  left: -40%; /* Start from the left */
+  top: 50%;
+  width: 100%; 
+  height: 2px; /* Line thickness */
+  background-color: rgb(255, 255, 255); /* Line color */
+  transform: rotate(90deg); /* Diagonal line */
+}
+
+.left-bar button:hover {
+  background-color: #253e0d;
+}
+
+
+.search-bar-container { /* creating */
+  background-color: #e0e0e0;
+  position: absolute;
+  width: 100vw;
+  top: 80px;
+  left: 260px;
+  padding: 30px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+
+  min-width: 200px;
+}
+
+/* Button styles */
+.dropbtn {
+  background-color: #939393;
+  color: rgb(0, 0, 0);
+  padding-right: 68px;
+  padding-top: 15px;
+  padding-left: 20px;
+  padding-bottom: 15px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+
+  border-radius: 30px; /* Rounded corners */
+}
+
+/* position the dropdown content */
+.dropdown {
+  position: relative;
+  display: inline-block;
+  top: 620px;
+  left: 30px;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  bottom: 100%;
+  z-index: 1;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {background-color: #f1f1f1}
+
+/* Login.css */
+.login-container {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  color: rgb(0, 0, 0);
+}
+
+.login-container h2 {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.login-form label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.login-form input[type="email"],
+.login-form input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.login-form button[type="submit"] {
+  width: 100%;
+  padding: 10px;
+  background-color: #253e0d;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.login-container button[type="register"] {
+  width: 100%;
+  padding: 10px;
+  background-color: #253e0d;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+
+.login-container button[type="login"] {
+  width: 100%;
+  padding: 10px;
+  background-color: #253e0d;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.login-form button[type="submit"]:hover {
+  background-color: #184009;
+}
+
+
+
+/* ProfileIcon.css */
+
+.profile-icon-container {
+  position: fixed;
+  top: 20px;
+  right: 30px;
+  z-index: 999; /* Ensure the icon is above other content */
+}
+
+.profile-icon-container img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid black; /* Add a black border */
+  object-fit: cover; /* Set object-fit property here */
+}
+
+.profile-icon-container :hover {
+  cursor: pointer;
+}
+
+
+/* Style Fetched Events */
+
+.events-list {
+  margin-top: 100px;
+  margin-left: 300px;
+  width: 72%;
+  position: sticky;
+  left: 0; 
+  top: 70px;
+}
+
+.event {
+  border: 10px solid #D0D6B3;
+  background-color: #ffffff;
+  padding: 10px;
+  margin-bottom: 10px;
+  list-style-type: none;
+}
+
+.event h3 {
+  font-size: 20px;
+  margin-bottom: 5px;
+}
+
+.events-list li a {
+  font-size: 20px;
+  margin-bottom: 5px;
+  text-decoration: none;
+  border-radius: 30px;
+  color: #434343;
+}
+
+.event p {
+  margin-bottom: 5px;
+}
+
+
+/* CSS for the popup container */
+.popup-container {
+  position: absolute;
+  top: 50px; 
+  right: 10px; 
+  width: 150px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.popup-container ul {
+  list-style-type: none;
+  padding: 0;
+  color: #92956F;
+  text-decoration: none;
+  border-radius: 30px;
+  padding: 6px 12px;
+}
+
+.popup-container li {
+  cursor: pointer;
+  padding: 5px 0;
+}
+
+.popup-container li:hover {
+  background-color: #f0f0f0;
+}
+
+.popup-container li a {
+  color: #92956F;
+  text-decoration: none;
+  border-radius: 30px;
+}
+
+.search-input {
+  font-size: 16px;  /* Larger font size for better readability */
+  padding: 10px 20px; /* Padding to make the input taller and more spacious */
+  width: 120%; /* Makes the input take the full width of its container */
+  margin: 10px auto; /* Adds some margin around the input */
+  border: 2px solid #ccc; /* Adds a border to the input */
+  border-radius: 8px; /* Rounds the corners of the input field */
+  box-shadow: 0 2px 5px rgba(101, 232, 119, 0.1); /* Adds a subtle shadow to the input */
+}
+
+.search-input:focus {
+  border-color: #306d2c; /* Changes the border color on focus */
+  outline: none; /* Removes the default focus outline */
+  box-shadow: 0 0 8px rgba(57, 107, 50, 0.5); /* Adds a stronger shadow when focused */
+}
+
+.search-filter-container {
+  display: flex;
+  align-items: center; /* Align items vertically */
+}
+
+.search-input {
+  margin-right: 30px; /* Add some space between the input and the button */
+}
+
+.search-filter-container {
+  position: absolute;
+  width: 25%;
+  display: relative;
+  align-items: center; 
+  justify-content: space-between; 
+ 
+}
+
+.search-input {
+  margin-right: 30px; /* Add some space between the input and the button */
+}
+
+.filter-popup {
+  position: relative;
+  z-index: 999;
+  top: 60px; 
+  background-color: white; 
+  padding: 10px;
+  border: 1px solid #ccc; 
+  border-radius: 5px; 
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
+  width: 1080px;
+}
+
+.filter-checkbox {
+  display: inline-block;
+  width: calc(33.33% - 10px);
+  margin-bottom: 10px;
+  margin-right: 10px;
+  vertical-align: top;
+}
+
+.filter-checkbox input {
+  margin-right: 5px;
+}
+
+.filter-button {
+  background-color: #92956F;
+  color: white;
+  padding: 10px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.filter-button:hover {
+  background-color: #253e0d;
+}

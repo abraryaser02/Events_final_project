@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  backend:
+    container_name: backend
+    build:
+      context: ./services/backend
+      dockerfile: Dockerfile-dev
+    command: bash -c "python manage.py recreate_db && python manage.py run -h 0.0.0.0"
+    volumes:
+      - ./services/backend/:/usr/src/app/
+    ports:
+      - 5001:5000
+    environment:
+      - FLASK_APP=project/__init__.py
+      - FLASK_DEBUG=1
+      - APP_SETTINGS=project.config.DevelopmentConfig
+      - DATABASE_URL=postgresql://postgres:postgres@backend-db:5432/backend_dev
+      - DATABASE_TEST_URL=postgresql://postgres:postgres@backend-db:5432/backend_test
+    depends_on:
+      - backend-db
+
+  backend-db:
+    image: postgres:13
+    container_name: backend-db
+    build:
+      context: ./services/backend/project/db
+      dockerfile: Dockerfile
+    volumes:
+      - postgres_volume:/var/lib/postgresql/data
+    ports:
+      - 5435:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  background-task:
+    container_name: background-task
+    build:
+      context: ./services/backend
+      dockerfile: Dockerfile-dev  
+    command: ["python3", "final_model.py"]
+    ports:
+      - 5005:5004
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      - backend-db
+
+  client:
+    container_name: my-app
+    build:
+      context: ./services/client/my-app/
+      dockerfile: Dockerfile-dev2
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./services/client/my-app:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm start
+
+volumes:
+  postgres_volume:
