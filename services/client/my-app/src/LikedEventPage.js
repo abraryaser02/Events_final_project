@@ -145,18 +145,18 @@ function EventPage({}) {
   };
 
   // Define the keywords for the filter
-  const filter = ["keyword1", "keyword2", "keyword3"];
+  // const filter = ["keyword1", "keyword2", "keyword3"];
 
   // Function to handle toggling of checked keywords
-  const handleKeywordCheckboxChange = (keyword) => {
+  //const handleKeywordCheckboxChange = (keyword) => {
     // If the keyword is already checked, remove it from the checkedKeywords array
     // If it's not checked, add it to the checkedKeywords array
-    setCheckedKeywords(prevCheckedKeywords =>
-      prevCheckedKeywords.includes(keyword)
-        ? prevCheckedKeywords.filter(k => k !== keyword)
-        : [...prevCheckedKeywords, keyword]
-    );
-  };
+    // setCheckedKeywords(prevCheckedKeywords =>
+      // prevCheckedKeywords.includes(keyword)
+        // ? prevCheckedKeywords.filter(k => k !== keyword)
+       // : [...prevCheckedKeywords, keyword]
+   // );
+ // };
 
   const handleSubmitEvent = (e) => {
     e.preventDefault();
@@ -175,7 +175,7 @@ function EventPage({}) {
       organization: organization,
       contact_information: contactInformation,
       registration_link: registrationLink,
-      keywords: keywords.split(',').map(keyword => keyword.trim()) // Converts comma-separated string to an array of trimmed strings
+     // keywords: keywords.split(',').map(keyword => keyword.trim()) // Converts comma-separated string to an array of trimmed strings
     };
   
     // Log to console or remove in production
@@ -190,16 +190,18 @@ function EventPage({}) {
   // Filter events based on the search query and key events
   const filteredEvents = events.filter(event => 
     (event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    event.keywords.some(keyword => keyword.toLowerCase().includes(searchQuery.toLowerCase()))) &&
-    (checkedKeywords.length === 0 || // If no keywords are checked, show all events
-    checkedKeywords.some(keyword => event.keywords.includes(keyword)))
+    event.keywords.some(keyword => keyword.toLowerCase().includes(searchQuery.toLowerCase()))) 
+      //&&
+    //(checkedKeywords.length === 0 || // If no keywords are checked, show all events
+    //checkedKeywords.some(keyword => event.keywords.includes(keyword)))
   );
 
   const favoritedEventsfilterd = favoritedEventsData.filter(event => 
     (event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    event.keywords.some(keyword => keyword.toLowerCase().includes(searchQuery.toLowerCase()))) &&
-    (checkedKeywords.length === 0 || // If no keywords are checked, show all events
-    checkedKeywords.some(keyword => event.keywords.includes(keyword)))
+    event.keywords.some(keyword => keyword.toLowerCase().includes(searchQuery.toLowerCase()))) 
+      //&&
+    //(checkedKeywords.length === 0 || // If no keywords are checked, show all events
+   // checkedKeywords.some(keyword => event.keywords.includes(keyword)))
   );
 
   // Return JSX for rendering
@@ -243,7 +245,6 @@ function EventPage({}) {
               <p>Organization: {event.organization}</p>
               <p>Contact Information: {event.contact_information}</p>
               <p>Registration Link: <a href={event.registration_link}>{event.registration_link}</a></p>
-              <p>Keywords: {event.keywords.join(', ')}</p>
             </li>
           ))}
         </ul>

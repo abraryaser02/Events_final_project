@@ -26,22 +26,12 @@ function AboutPage() {
       </div>
       <header className="About-header">
         <h2>AI-Powered Event Planner for 5Cs Students</h2>
-        <p>P-5cEvents is a web app designed to organize on-campus events and student calendars, offering comprehensive event scheduling assistance including maps and g-Cal integration. We will use imaplib to scrape Outlook/Gmail email content from various servers across campus to populate this web app but users can also submit the event details directly on this website. Beyond scheduling, p-5cEvents enhances user experience with an AI-driven recommendation system, employing natural language processing to tailor event suggestions based on individual preferences and historical attendance.</p>
+        <p>P-5cEvents is a web app designed to organize events and calendars, offering comprehensive event scheduling assistance</p>
       </header>
       <header className="About-team">
-        <h2>Meet the team</h2>
-        <h3>Project Management</h3>
+        <h2>Meet the dev</h2>
         <p>Abrar Yaser POM '25</p>
-        <p>Sae Furukawa POM '25</p>
 
-        <h4>Members</h4>
-        <p>David Wong POM '25</p>
-        <p>Dylan O'Connor POM '26</p>
-        <p>Landen Isacson POM '27</p>
-        <p>Oncel Aldanmaz HMC '26</p>
-        <p>Sadhvi Narayanan HMC '27</p>
-        <p>Sumi Vora POM '25</p>
-        <p>Yunju Song POM '26</p>
       </header>
     </div>
   );

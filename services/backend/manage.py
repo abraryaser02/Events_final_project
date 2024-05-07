@@ -1,6 +1,6 @@
 import os
 from flask.cli import FlaskGroup
-from project import app, db  # Update "your_application" with the appropriate module name
+from project import app, db  
 
 cli = FlaskGroup(app)
 

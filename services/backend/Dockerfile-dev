@@ -24,11 +24,5 @@ RUN chmod +x /usr/src/app/entrypoint.sh
 # Copy the rest of the application
 COPY . /usr/src/app
 
-# Copy final_model.py into the image
-COPY ./final_model.py /usr/src/app/final_model.py
-
-# Give executable permissions to final_model.py
-RUN chmod +x /usr/src/app/final_model.py
-
 # Run server via the entrypoint script
 CMD ["./entrypoint.sh"]

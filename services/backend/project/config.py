@@ -1,26 +1,21 @@
 # services/backend/project/config.py
 
-
 import os
-
-basedir = os.path.abspath(os.path.dirname(__file__))
-
 
 class BaseConfig:
     """Base configuration"""
     TESTING = False
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-
 
 class DevelopmentConfig(BaseConfig):
     """Development configuration"""
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite://")
+    DATABASE_URI = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@backend-db:5432/backend_dev")
 
 class TestingConfig(BaseConfig):
     """Testing configuration"""
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite://")
+    DATABASE_URI = os.getenv("DATABASE_TEST_URL", "postgresql://postgres:postgres@backend-db:5432/backend_test")
 
 class ProductionConfig(BaseConfig):
     """Production configuration"""
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite://")
+    DATABASE_URI = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@backend-db:5432/backend_prod")
+
