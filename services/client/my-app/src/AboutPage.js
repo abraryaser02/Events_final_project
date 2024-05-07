@@ -25,7 +25,7 @@ function AboutPage() {
         </ul>
       </div>
       <header className="About-header">
-        <h2>AI-Powered Event Planner for 5Cs Students</h2>
+        <h2>Event Planner for all</h2>
         <p>P-5cEvents is a web app designed to organize events and calendars, offering comprehensive event scheduling assistance</p>
       </header>
       <header className="About-team">

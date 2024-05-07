@@ -1,14 +1,13 @@
-# Use an official Node runtime as a parent image
-FROM node:14
+# Stage 1: Build the application
+FROM node:14-alpine as builder
 
-# Set the working directory in the container
+# Set the working directory
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json (or yarn.lock)
-COPY package.json ./
-COPY package-lock.json* yarn.lock* ./
+# Copy package.json and lock files
+COPY package.json package-lock.json* yarn.lock* ./
 
-# Install dependencies
+# Install dependencies including 'react'
 RUN npm install --silent
 
 # Copy the rest of your app's source code
@@ -17,8 +16,20 @@ COPY . .
 # Build your app
 RUN npm run build
 
-# Install `serve` to serve your application on port 3000
+# Stage 2: Setup the runtime environment
+FROM node:14-alpine
+
+# Set the working directory
+WORKDIR /usr/src/app
+
+# Install serve to serve your application
 RUN npm install -g serve
+
+# Copy the build directory from the builder stage
+COPY --from=builder /usr/src/app/build ./build
+
+# Copy node_modules from builder stage if needed for runtime
+COPY --from=builder /usr/src/app/node_modules ./node_modules
 
 # Command to run the app
 CMD ["serve", "-s", "build", "-l", "3000"]

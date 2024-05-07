@@ -126,8 +126,9 @@ def create_event():
                 'registration_link': data['registration_link'],
                 'keywords': data['keywords']
             })
+            connection.commit()
             new_event_id = result.fetchone()[0]
-            return jsonify({'message': 'Event created successfully', 'eventID': new_event_id}), 201
+            return jsonify({'message': 'Event created successfully', 'eventID': new_event_id}), 200
     except Exception as e:
         return jsonify({'message': 'Failed to create event', 'details': str(e)}), 500
 
@@ -181,7 +182,7 @@ def delete_event(event_id):
 def events_by_user(user_id):
     query = """
     SELECT e.id_events, e.name, e.description, e.location, e.start_time, e.end_time, 
-           e.organization, e.contact_information, e.registration_link
+           e.organization, e.contact_information, e.registration_link, e.keywords
     FROM events e
     JOIN user_to_events ue ON ue.event_id = e.id_events
     WHERE ue.user_id = :user_id
@@ -189,7 +190,7 @@ def events_by_user(user_id):
     with engine.connect() as connection:
         events = connection.execute(text(query), {'user_id': user_id}).fetchall()
         if not events:
-            return jsonify({'message': 'No events or user not found'}), 404
+            return jsonify({'message': 'User not found'}), 404
 
         events_list = [{'id': event.id_events, 
                         'name': event.name, 
@@ -200,7 +201,8 @@ def events_by_user(user_id):
                         'organization': event.organization, 
                         'contact_information': event.contact_information,
                         'registration_link': event.registration_link,
-                        'keywords': event.keywords} for event in events]
+                        'keywords': event.keywords
+                    } for event in events]
 
     return jsonify(events_list)
 
@@ -230,7 +232,8 @@ def toggle_user_event():
 
         if existing_association:
             # Delete existing association
-            connection.execute(text("DELETE FROM user_to_events WHERE id_favorites = :id"), {'id': existing_association['id_favorites']})
+            connection.execute(text("DELETE FROM user_to_events WHERE id_favorites = :id"), {'id': existing_association.id_favorites})
+            connection.commit()
             return jsonify({'message': 'User removed from event successfully', 'isFavorited': False}), 200
         else:
             # Create new association
@@ -238,6 +241,7 @@ def toggle_user_event():
                 INSERT INTO user_to_events (user_id, event_id)
                 VALUES (:user_id, :event_id)
             """), {'user_id': user_id, 'event_id': event_id})
+            connection.commit()
             return jsonify({'message': 'User added to event successfully', 'isFavorited': True}), 201
 
 
