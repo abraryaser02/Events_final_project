@@ -1,5 +1,3 @@
-
-
 //curl -X POST http://localhost:5001/create_event -H "Content-Type: application/json" -d "{\"name\":\"Event Name\",\"description\":\"Event Description\",\"location\":\"Event location\",\"time\":\"2024-03-22T15:30:00\",\"organization\":\"Event Organization\"}"
 
 //Getting user data
@@ -37,10 +35,12 @@ function EventPage() {
   const [organization, setOrganization] = useState('');
   const [contactInformation, setContactInformation] = useState('');
   const [registrationLink, setRegistrationLink] = useState('');
+  const [keywords, setKeywords] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [events, setEvents] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilterPopup, setShowFilterPopup] = useState(false);
+  const [checkedKeywords, setCheckedKeywords] = useState([]);
   const [favoritedEvents, setFavoritedEvents] = useState(new Set());
 
   //fetching data from the backend
@@ -120,7 +120,7 @@ function updateFavoritedEvents(result, eventId) {
   // Function to post event data to the backend
   const postEventData = async (eventData) => {
     try {
-      const response = await fetch('http://localhost:5001/create_event', { // wrong endpoint
+      const response = await fetch('http://localhost:5001/create_event', { 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -151,22 +151,22 @@ function updateFavoritedEvents(result, eventId) {
     setShowCreateEventPopup(!showCreateEventPopup);
   };
 
-  //// Define the keywords for the filter
-  //const filter = ["academics and graduate school", "networking and career development", "workshops and seminars", 
-  //"volunteering and fundraising", "affinity groups and cultural events", "activism and social justice", "athletics", 
-  //"wellness", "recreation and nightlife", "clubs and organizations", "science and technology", "arts and theater", 
-  //"food and snacks", "pre-professional events", "sustainability"];
-//
-  //// Function to handle toggling of checked keywords
-  //const handleKeywordCheckboxChange = (keyword) => {
-    //// If the keyword is already checked, remove it from the checkedKeywords array
-    //// If it's not checked, add it to the checkedKeywords array
-    //setCheckedKeywords(prevCheckedKeywords =>
-      //prevCheckedKeywords.includes(keyword)
-        //? prevCheckedKeywords.filter(k => k !== keyword)
-        //: [...prevCheckedKeywords, keyword]
-    //);
-  //};
+  // Define the keywords for the filter
+  const filter = ["academics and graduate school", "networking and career development", "workshops and seminars", 
+  "volunteering and fundraising", "affinity groups and cultural events", "activism and social justice", "athletics", 
+  "wellness", "recreation and nightlife", "clubs and organizations", "science and technology", "arts and theater", 
+  "food and snacks", "pre-professional events", "sustainability"];
+
+  // Function to handle toggling of checked keywords
+  const handleKeywordCheckboxChange = (keyword) => {
+    // If the keyword is already checked, remove it from the checkedKeywords array
+    // If it's not checked, add it to the checkedKeywords array
+    setCheckedKeywords(prevCheckedKeywords =>
+      prevCheckedKeywords.includes(keyword)
+        ? prevCheckedKeywords.filter(k => k !== keyword)
+        : [...prevCheckedKeywords, keyword]
+    );
+  };
 
   const handleSubmitEvent = (e) => {
     e.preventDefault();
@@ -184,7 +184,8 @@ function updateFavoritedEvents(result, eventId) {
       description: description,
       organization: organization,
       contact_information: contactInformation,
-      registration_link: registrationLink
+      registration_link: registrationLink,
+      keywords: keywords
     };
   
     // Log to console or remove in production
@@ -196,13 +197,13 @@ function updateFavoritedEvents(result, eventId) {
   };
   
   
-  //// Filter events based on the search query and key events
-  //const filteredEvents = events.filter(event => 
-    //(event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    //event.keywords.some(keyword => keyword.toLowerCase().includes(searchQuery.toLowerCase()))) &&
-    //(checkedKeywords.length === 0 || // If no keywords are checked, show all events
-    //checkedKeywords.some(keyword => event.keywords.includes(keyword)))
-  //);
+  // Filter events based on the search query and key events
+  const filteredEvents = events.filter(event => 
+    (event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    event.keywords.some(keyword => keyword.toLowerCase().includes(searchQuery.toLowerCase()))) &&
+    (checkedKeywords.length === 0 || // If no keywords are checked, show all events
+    checkedKeywords.some(keyword => event.keywords.includes(keyword)))
+  );
 
   // Return JSX for rendering
   const imageUrl = profileimg;
@@ -261,31 +262,31 @@ function updateFavoritedEvents(result, eventId) {
             </label>
             <label>Registration Link:
               <input type="url" value={registrationLink} onChange={(e) => setRegistrationLink(e.target.value)} />
-            //</label>
-            //<label>Keywords:</label>
-              //<select
-                //multiple
-                //value={keywords}
-                //onChange={(e) => setKeywords(Array.from(e.target.selectedOptions, option => option.value))}
-                //required
-            //>
-                //{/* Options */}
-                //<option value="academics and graduate school">Academics and Graduate School</option>
-                //<option value="networking and career development">Networking and Career Development</option>
-                //<option value="workshops and seminars">Workshops and Seminars</option>
-                //<option value="volunteering and fundraising">Volunteering and Fundraising</option>
-                //<option value="affinity groups and cultural events">Affinity Groups and Cultural Events</option>
-                //<option value="activism and social justice">Activism and Social Justice</option>
-                //<option value="athletics">Athletics</option>
-                //<option value="wellness">Wellness</option>
-                //<option value="recreation and nightlife">Recreation and Nightlife</option>
-                //<option value="clubs and organizations">Clubs and Organizations</option>
-                //<option value="science and technology">Science and Technology</option>
-                //<option value="arts and theater">Arts and Theater</option>
-                //<option value="food and snacks">Food and Snacks</option>
-                //<option value="pre-professional events">Pre-professional Events</option>
-                //<option value="sustainability">Sustainability</option>
-              //</select>
+            </label>
+            <label>Keywords:</label>
+              <select
+                multiple
+                value={keywords}
+                onChange={(e) => setKeywords(Array.from(e.target.selectedOptions, option => option.value))}
+                required
+            >
+                {/* Options */}
+                <option value="academics and graduate school">Academics and Graduate School</option>
+                <option value="networking and career development">Networking and Career Development</option>
+                <option value="workshops and seminars">Workshops and Seminars</option>
+                <option value="volunteering and fundraising">Volunteering and Fundraising</option>
+                <option value="affinity groups and cultural events">Affinity Groups and Cultural Events</option>
+                <option value="activism and social justice">Activism and Social Justice</option>
+                <option value="athletics">Athletics</option>
+                <option value="wellness">Wellness</option>
+                <option value="recreation and nightlife">Recreation and Nightlife</option>
+                <option value="clubs and organizations">Clubs and Organizations</option>
+                <option value="science and technology">Science and Technology</option>
+                <option value="arts and theater">Arts and Theater</option>
+                <option value="food and snacks">Food and Snacks</option>
+                <option value="pre-professional events">Pre-professional Events</option>
+                <option value="sustainability">Sustainability</option>
+              </select>
             <button type="submit">Submit Event</button>
           </form>
           {/* Confirmation message and button */}
@@ -313,29 +314,29 @@ function updateFavoritedEvents(result, eventId) {
           onChange={(e) => setSearchQuery(e.target.value)}
         />
 
-        //{/* Filter button */}
-        //<button className="filter-button" onClick={() => setShowFilterPopup(prevState => !prevState)}>Filter</button>
-      //</div>
-        //{/* Filter popup container */}
-        //{showFilterPopup && (
-          //<div className="filter-popup">
-            //<ul>
-              //{/* Filter checkboxes */}
-              //{filter.map((keyword, index) => (
-                //<div key={index} className="filter-checkbox">
-                  //<input
-                    //type="checkbox"
-                    //checked={checkedKeywords.includes(keyword)}
-                    //onChange={() => handleKeywordCheckboxChange(keyword)}
-                  ///>
-                  //<label>{keyword}</label>
-                //</div>
-              //))}
-            //</ul>
-          //</div>
-        //)}
-      //</header>
-//
+        {/* Filter button */}
+        <button className="filter-button" onClick={() => setShowFilterPopup(prevState => !prevState)}>Filter</button>
+      </div>
+        {/* Filter popup container */}
+        {showFilterPopup && (
+          <div className="filter-popup">
+            <ul>
+              {/* Filter checkboxes */}
+              {filter.map((keyword, index) => (
+                <div key={index} className="filter-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={checkedKeywords.includes(keyword)}
+                    onChange={() => handleKeywordCheckboxChange(keyword)}
+                  />
+                  <label>{keyword}</label>
+                </div>
+              ))}
+            </ul>
+          </div>
+        )}
+      </header>
+
       
 
       <div className="events-list">
@@ -355,7 +356,7 @@ function updateFavoritedEvents(result, eventId) {
               <p>Organization: {event.organization}</p>
               <p>Contact Information: {event.contact_information}</p>
               <p>Registration Link: <a href={event.registration_link}>{event.registration_link}</a></p>
-              //<p>Keywords: {event.keywords.join(', ')}</p>
+              <p>Keywords: {event.keywords.join(', ')}</p>
             </li>
           ))}
         </ul>

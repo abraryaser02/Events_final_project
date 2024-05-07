@@ -6,7 +6,7 @@ services:
     build:
       context: ./services/backend/
       dockerfile: Dockerfile-dev
-    command: bash -c "python manage.py recreate_db && python manage.py run -h 0.0.0.0"
+    command: bash -c "python manage.py run -h 0.0.0.0"
     volumes:
       - ./services/backend/:/usr/src/app/
     ports:
@@ -33,6 +33,7 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=backend_dev
 
   client:
     container_name: my-app

@@ -3,7 +3,7 @@
 import os
 from datetime import datetime, timedelta
 from random import choice
-from flask import Flask, jsonify, request, make_response
+from flask import Flask, jsonify, request, make_response, session, redirect, url_for
 from sqlalchemy import create_engine, text
 from flask_cors import CORS
 from flask_socketio import SocketIO
@@ -16,6 +16,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 
 app.config.from_object(os.getenv('APP_SETTINGS', 'project.config.DevelopmentConfig'))
 engine = create_engine(app.config['DATABASE_URI'])
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -32,11 +33,19 @@ def login():
         user = result.fetchone()
 
     if user:
-        response = make_response(jsonify({'message': 'Login successful', 'userId': user['id_users']}))
-        response.set_cookie('user_id', str(user['id_users']), httponly=True)
-        return response
+        response = make_response(jsonify({'message': 'Login successful', 'userId': user.id_users}))
+        response.set_cookie('user_id', str(user.id_users), httponly=True)  
+        return jsonify({'success': True, 'message': 'Login successful', 'userId': user.id_users, 'email': email})
     else:
-        return jsonify({'message': 'Invalid credentials'}), 401
+        return jsonify({'success': False, 'message': 'Invalid username or password'}), 401
+    
+    
+@app.route('/logout', methods=['POST'])
+def logout():
+    response = make_response(jsonify({'message': 'You have been logged out'}))
+    response.delete_cookie('user_id') 
+    return response
+
 
 @app.route('/create_user', methods=['POST'])
 def create_user():
@@ -45,39 +54,100 @@ def create_user():
     password = data.get('password')
 
     if not email or not password:
-        return jsonify({'message': 'Email and password required'}), 400
+        return jsonify({'message': 'email or password missing'}), 400
 
     with engine.connect() as connection:
         existing_user = connection.execute(text("SELECT id_users FROM users WHERE email = :email"), {'email': email}).first()
         if existing_user:
             return jsonify({'message': 'User already exists'}), 409
 
+        # Insert the new user
         connection.execute(text("INSERT INTO users (email, password) VALUES (:email, :password)"), {'email': email, 'password': password})
-        return jsonify({'message': 'User created successfully'}), 201
+        connection.commit()  
+
+        # Fetch the new user to confirm insertion
+        new_user = connection.execute(text("SELECT id_users FROM users WHERE email = :email"), {'email': email}).first()
+        if new_user:
+            response = make_response(jsonify({'message': 'User created successfully', 'userId': new_user.id_users}))
+            response.set_cookie('user_id', str(new_user.id_users), httponly=True)
+            return jsonify({'message': 'User created successfully'}), 201
+        else:
+            return jsonify({'message': 'Failed to create user', 'details': 'Failed to create user'}), 500
+    
 
 @app.route('/all_users', methods=['GET'])
 def get_users():
     with engine.connect() as connection:
         users = connection.execute(text("SELECT * FROM users")).fetchall()
-        users_list = [{'id': user['id_users'], 'email': user['email']} for user in users]
+        users_list = [{'id': user.id_users, 'email': user.email} for user in users]
     return jsonify(users_list)
+
+
+#get user by id
+@app.route('/get_user/<int:user_id>', methods=['GET'])
+def get_user(user_id):
+    with engine.connect() as connection:
+        user = connection.execute(text('SELECT * FROM user WHERE id_users=:user_id'), {'user_id': user_id}).first()
+        if user is None:
+            return jsonify({'message': 'User not found'}), 404
+        user_data = {
+            'id_users': user.id,
+            'email': user.email,
+            'password': user.password
+        }
+    return jsonify(user_data)
+
 
 @app.route('/create_event', methods=['POST'])
 def create_event():
-    data = request.json
-    with engine.connect() as connection:
-        connection.execute(text("""
-            INSERT INTO events (name, description, location, start_time, end_time, organization, contact_information, registration_link)
-            VALUES (:name, :description, :location, :start_time, :end_time, :organization, :contact_information, :registration_link)
-        """), data)
-        return jsonify({'message': 'Event created successfully'}), 201
+    data = request.get_json()
+
+    sql = """
+        INSERT INTO events 
+            (name, description, location, start_time, end_time, organization, 
+             contact_information, registration_link, keywords)
+        VALUES 
+            (:name, :description, :location, :start_time, :end_time, :organization, 
+             :contact_information, :registration_link, :keywords)
+        RETURNING id_events;
+    """
+    
+    try:
+        with engine.connect() as connection:
+            # Execute the insert statement and fetch the newly created event ID
+            result = connection.execute(text(sql), {
+                'name': data['name'],
+                'description': data['description'],
+                'location': data['location'],
+                'start_time': data['start_time'],
+                'end_time': data['end_time'],
+                'organization': data['organization'],
+                'contact_information': data['contact_information'],
+                'registration_link': data['registration_link'],
+                'keywords': data['keywords']
+            })
+            new_event_id = result.fetchone()[0]
+            return jsonify({'message': 'Event created successfully', 'eventID': new_event_id}), 201
+    except Exception as e:
+        return jsonify({'message': 'Failed to create event', 'details': str(e)}), 500
+
 
 @app.route('/all_events', methods=['GET'])
 def get_events():
     with engine.connect() as connection:
         events = connection.execute(text("SELECT * FROM events")).fetchall()
-        events_list = [{'id': event['id_events'], 'name': event['name'], 'description': event['description']} for event in events]
+        events_list = [{'id': event.id_events, 
+                        'name': event.name, 
+                        'description': event.description,
+                        'location': event.location, 
+                        'start_time': event.start_time, 
+                        'end_time': event.end_time,
+                        'organization': event.organization, 
+                        'contact_information': event.contact_information,
+                        'registration_link': event.registration_link,
+                        'keywords': event.keywords} for event in events]
     return jsonify(events_list)
+
 
 @app.route('/get_event/<int:event_id>', methods=['GET'])
 def get_event(event_id):
@@ -85,13 +155,20 @@ def get_event(event_id):
         event = connection.execute(text("SELECT * FROM events WHERE id_events = :event_id"), {'event_id': event_id}).first()
         if event:
             return jsonify({
-                'id': event['id_events'], 'name': event['name'], 'description': event['description'],
-                'location': event['location'], 'start_time': event['start_time'], 'end_time': event['end_time'],
-                'organization': event['organization'], 'contact_information': event['contact_information'],
-                'registration_link': event['registration_link']
+                'id': event.id_events, 
+                'name': event.name, 
+                'description': event.description,
+                'location': event.location, 
+                'start_time': event.start_time, 
+                'end_time': event.end_time,
+                'organization': event.organization, 
+                'contact_information': event.contact_information,
+                'registration_link': event.registration_link,
+                'keywords': event.keywords
             })
         else:
             return jsonify({'message': 'Event not found'}), 404
+        
 
 @app.route('/delete_event/<int:event_id>', methods=['DELETE'])
 def delete_event(event_id):
@@ -99,11 +176,12 @@ def delete_event(event_id):
         connection.execute(text("DELETE FROM events WHERE id_events = :event_id"), {'event_id': event_id})
         return jsonify({'message': 'Event deleted successfully'}), 200
 
+
 @app.route('/events_by_user/<int:user_id>', methods=['GET'])
 def events_by_user(user_id):
     query = """
     SELECT e.id_events, e.name, e.description, e.location, e.start_time, e.end_time, 
-           e.organization, e.contact_information
+           e.organization, e.contact_information, e.registration_link
     FROM events e
     JOIN user_to_events ue ON ue.event_id = e.id_events
     WHERE ue.user_id = :user_id
@@ -113,18 +191,19 @@ def events_by_user(user_id):
         if not events:
             return jsonify({'message': 'No events or user not found'}), 404
 
-        events_list = [{
-            'id': event['id_events'],
-            'name': event['name'],
-            'description': event['description'],
-            'location': event['location'],
-            'start_time': event['start_time'].isoformat() if event['start_time'] else None,
-            'end_time': event['end_time'].isoformat() if event['end_time'] else None,
-            'organization': event['organization'],
-            'contact_information': event['contact_information']
-        } for event in events]
+        events_list = [{'id': event.id_events, 
+                        'name': event.name, 
+                        'description': event.description,
+                        'location': event.location, 
+                        'start_time': event.start_time, 
+                        'end_time': event.end_time,
+                        'organization': event.organization, 
+                        'contact_information': event.contact_information,
+                        'registration_link': event.registration_link,
+                        'keywords': event.keywords} for event in events]
 
     return jsonify(events_list)
+
 
 @app.route('/toggle_user_event', methods=['POST'])
 def toggle_user_event():
