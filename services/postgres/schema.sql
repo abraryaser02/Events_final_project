@@ -51,11 +51,11 @@ CREATE TABLE fts_word (
 COPY fts_word(word) FROM '/docker-entrypoint-initdb.d/words_alpha.txt' WITH (FORMAT text);
 
 -- Indexes for faster search
-CREATE INDEX idx_login ON users USING btree (email, password);
-CREATE INDEX idx_users_email ON users USING btree (email);
+CREATE INDEX idx_login ON users (email, password);
+CREATE INDEX idx_users_email ON users (id_users, email);
+CREATE INDEX idx_events_start_time ON events USING btree (start_time);
 CREATE INDEX idx_events_name ON events USING rum (name);
 CREATE INDEX idx_events_description ON events USING rum (description);
-CREATE INDEX idx_events_start_time ON events USING btree (start_time);
 
 -- Full-text search index
 CREATE INDEX idx_events_fti ON events USING rum (tsv);
