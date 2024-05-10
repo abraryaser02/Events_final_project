@@ -24,3 +24,4 @@ WORKDIR /tmp/db
 RUN mkdir /data && chown postgres /data
 
 COPY schema.sql /docker-entrypoint-initdb.d/
+COPY words_alpha.txt /docker-entrypoint-initdb.d/

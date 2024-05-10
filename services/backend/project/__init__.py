@@ -195,16 +195,16 @@ def delete_event(event_id):
 @app.route('/events_by_user/<int:user_id>', methods=['GET'])
 def events_by_user(user_id):
     query = """
-    SELECT e.id_events, e.name, e.description, e.location, e.start_time, e.end_time, 
-           e.organization, e.contact_information, e.registration_link, e.keywords
-    FROM events e
-    JOIN user_to_events ue ON ue.event_id = e.id_events
-    WHERE ue.user_id = :user_id
+        SELECT e.id_events, e.name, e.description, e.location, e.start_time, e.end_time, 
+            e.organization, e.contact_information, e.registration_link, e.keywords
+        FROM events e
+        JOIN user_to_events ue ON ue.event_id = e.id_events
+        WHERE ue.user_id = :user_id
     """
     with engine.connect() as connection:
         events = connection.execute(text(query), {'user_id': user_id}).fetchall()
         if not events:
-            return jsonify({'message': 'User not\q found'}), 404
+            return jsonify({'message': 'User not found'}), 404
 
         events_list = [{'id': event.id_events, 
                         'name': event.name, 
@@ -226,9 +226,14 @@ def get_top_favorited_events():
     try:
         # SQL query to select the top 10 most favorited events
         query = """
-            SELECT * FROM mv_events_with_likes
+            SELECT e.id_events, e.name, e.description, e.location, e.start_time, e.end_time, 
+                   e.organization, e.contact_information, e.registration_link, e.keywords,
+                   COUNT(ue.event_id) AS likes
+            FROM events e
+            LEFT JOIN user_to_events ue ON e.id_events = ue.event_id
+            GROUP BY e.id_events
             ORDER BY likes DESC
-            LIMIT 10;
+            LIMIT 10
         """
         with engine.connect() as connection:
             # Execute the SQL query

@@ -3,6 +3,7 @@ version: '3.9'
 services:
   backend:
     container_name: backend
+    restart: unless-stopped
     build:
       context: ./services/backend/
       dockerfile: Dockerfile-prod
@@ -10,7 +11,7 @@ services:
     volumes:
       - ./services/backend/:/usr/src/app/
     ports:
-      - 5001:8000  # Map external port 5001 to internal port 8000
+      - "5001:8000"
     environment:
       - FLASK_APP=project/__init__.py
       - FLASK_ENV=production
@@ -25,7 +26,7 @@ services:
     volumes:
       - postgres_volume:/var/lib/postgresql/data
     ports:
-      - 5435:5432  # Map external port 5435 to internal port 5432
+      - "5435:5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -37,7 +38,9 @@ services:
       context: ./services/client/my-app/
       dockerfile: Dockerfile-prod-2
     volumes:
-      - ./services/client/my-app/build:/usr/share/nginx/html  # Mount the build directory for serving static files
+      - ./services/client/my-app/build:/usr/share/nginx/html
+    ports:
+      - "3000:80"
     depends_on:
       - backend
 
@@ -45,10 +48,12 @@ services:
     container_name: nginx
     image: nginx:latest
     ports:
-      - "8000:80"  # Expose port 8000 on host for accessing Nginx
+      - "8000:80"
+      - "443:443"
+    restart: unless-stopped
     volumes:
-      - ./services/nginx/nginx.conf:/etc/nginx/nginx.conf  # Mount the Nginx configuration file
-      - ./services/client/my-app/build:/usr/share/nginx/html  # Mount the build directory for serving static files
+      - ./services/client/my-app/nginx.conf:/etc/nginx/nginx.conf
+      - ./services/client/my-app/prod.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - backend
       - my-app

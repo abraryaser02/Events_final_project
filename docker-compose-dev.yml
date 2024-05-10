@@ -21,7 +21,7 @@ services:
       - backend-db
 
   backend-db:
-    image: postgres:13
+    image: postgres:16
     container_name: backend-db
     build:
       context: ./services/postgres/

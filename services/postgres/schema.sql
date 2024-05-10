@@ -57,20 +57,19 @@ CREATE INDEX idx_login ON users (email, password);
 CREATE INDEX idx_users_email ON users (email);
 
 -- Index for events based on start time for ordering and filtering
-CREATE INDEX idx_events_start_time ON events USING btree (start_time);
+CREATE INDEX idx_events_start_time ON events(start_time);
 
 -- Index for events based on the event ID
 CREATE INDEX idx_events_id_events ON events (id_events);
 
 -- Indexes on user_to_events for join operations
-CREATE INDEX idx_user_to_events_user_id ON user_to_events (user_id);
-CREATE INDEX idx_user_to_events_event_id ON user_to_events (event_id);
+CREATE INDEX idx_user_to_events_user_event ON user_to_events (user_id, event_id);
 
 -- Full-text search index
 CREATE INDEX idx_events_fti ON events USING rum (tsv);
 
 -- Index for fts_word for spelling suggestions
-CREATE INDEX idx_fts_word ON fts_word USING rum (word);
+CREATE INDEX idx_fts_word_rum ON fts_word USING rum (word);
 
 -- Create the function and trigger to update tsvector
 CREATE OR REPLACE FUNCTION update_tsvector() RETURNS trigger AS $$
