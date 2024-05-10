@@ -63,7 +63,6 @@ function UserFav() {
           {/* Navigation links */}
           <li><Link to="/events">Events</Link></li>
           <li><Link to="/map">Map</Link></li>
-          <li><Link to="/about">People</Link></li>
           <li><Link to="/favorites">Favorites</Link></li>
         </ul>
       </div>

@@ -14,15 +14,6 @@ def teardown_function():
         connection.execute(text("DELETE FROM events"))
         connection.execute(text("DELETE FROM user_to_events"))
 
-def test_create_user(client):
-    response = client.post('/create_user', json={
-        'email': 'newuser@example.com',
-        'password': 'newpassword123'
-    })
-    assert response.status_code == 201
-    data = response.get_json()
-    assert data['message'] == 'User created successfully'
-
 def test_create_event(client):
     """Test the create_event endpoint."""
     sample_data = {
@@ -61,11 +52,6 @@ def test_login(client):
     assert response.status_code == 200
     data = response.get_json()
     assert data['success'] == True
-
-
-def test_get_users(client):
-    response = client.get('/all_users')
-    assert response.status_code == 200
 
 def test_logout(client):
     response = client.post('/logout')

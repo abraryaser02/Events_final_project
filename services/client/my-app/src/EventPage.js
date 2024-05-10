@@ -275,7 +275,6 @@ function updateFavoritedEvents(result, eventId) {
           {/* Navigation links */}
           <li><Link to="/events">Events</Link></li>
           <li><Link to="/map">Map</Link></li>
-          <li><Link to="/about">People</Link></li>
           <li><Link to="/favorites">Favorites</Link></li>
           <li><button type= "event-button" button onClick={toggleCreateEventPopup}>Create Event</button></li>
         </ul>

@@ -149,7 +149,6 @@ function MapPage() {
         <ul>
         <li><Link to="/events">Events</Link></li>
         <li><Link to="/map">Map</Link></li>
-        <li><Link to="/about">Friends</Link></li>
         <li><Link to="/favorites">Favorites</Link></li>
         </ul>
       </div>

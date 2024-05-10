@@ -1,6 +1,5 @@
 import React from 'react';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
-import AboutPage from './AboutPage';
 import CalendarPage from './CalendarPage';
 import EventDetailPage from './EventDetail';
 import EventPage from './EventPage';
@@ -33,11 +32,6 @@ function App() {
             <Route path="/map" element={
               <ProtectedRoute>
                 <MapPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/about" element={
-              <ProtectedRoute>
-                <AboutPage />
               </ProtectedRoute>
             } />
             <Route path="/favorites" element={
