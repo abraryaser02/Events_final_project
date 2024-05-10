@@ -195,16 +195,16 @@ def delete_event(event_id):
 @app.route('/events_by_user/<int:user_id>', methods=['GET'])
 def events_by_user(user_id):
     query = """
-        SELECT e.id_events, e.name, e.description, e.location, e.start_time, e.end_time, 
-            e.organization, e.contact_information, e.registration_link, e.keywords
-        FROM events e
-        JOIN user_to_events ue ON ue.event_id = e.id_events
-        WHERE ue.user_id = :user_id
+    SELECT e.id_events, e.name, e.description, e.location, e.start_time, e.end_time, 
+           e.organization, e.contact_information, e.registration_link, e.keywords
+    FROM events e
+    JOIN user_to_events ue ON ue.event_id = e.id_events
+    WHERE ue.user_id = :user_id
     """
     with engine.connect() as connection:
         events = connection.execute(text(query), {'user_id': user_id}).fetchall()
         if not events:
-            return jsonify({'message': 'User not found'}), 404
+            return jsonify({'message': 'User not\q found'}), 404
 
         events_list = [{'id': event.id_events, 
                         'name': event.name, 
@@ -264,10 +264,6 @@ def toggle_user_event():
 
     if not user_id or not event_id:
         return jsonify({'message': 'Missing user_id or event_id'}), 400
-    
-    with engine.connect() as connection:
-        connection.execute(text("REFRESH MATERIALIZED VIEW mv_events_with_likes;"))
-        connection.commit()
 
     with engine.connect() as connection:
         # Check if both user and event exist

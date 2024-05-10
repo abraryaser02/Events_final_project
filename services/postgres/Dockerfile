@@ -4,7 +4,8 @@ FROM postgres
 RUN apt-get update && apt-get install -y \
     git \
     build-essential \
-    postgresql-server-dev-all
+    postgresql-server-dev-all \
+    postgresql-12-rum
 
 # Clone RUM repository from GitHub
 RUN git clone https://github.com/postgrespro/rum /tmp/rum
@@ -22,6 +23,4 @@ WORKDIR /tmp/db
 # Ensure correct permissions for the database directory
 RUN mkdir /data && chown postgres /data
 
-# Copy the schema to the initialization directory
 COPY schema.sql /docker-entrypoint-initdb.d/
-COPY words_alpha.txt /docker-entrypoint-initdb.d/

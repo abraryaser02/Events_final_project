@@ -1,0 +1,28 @@
+# Dockerfile-prod
+
+FROM python:3.9-slim
+
+# Install dependencies
+RUN apt-get update \
+    && apt-get install -y netcat-openbsd --no-install-recommends \
+    && apt-get clean
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Create and set the working directory
+WORKDIR /usr/src/app
+
+# Install Python dependencies
+COPY requirements.txt /usr/src/app/
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the application
+COPY . /usr/src/app/
+
+# Expose the port
+EXPOSE 8000
+
+# Default command (can be overridden by docker-compose)
+CMD ["gunicorn", "--workers", "3", "--bind", "0.0.0.0:8000", "wsgi:app"]

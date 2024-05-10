@@ -1,0 +1,57 @@
+version: '3.9'
+
+services:
+  backend:
+    container_name: backend
+    build:
+      context: ./services/backend/
+      dockerfile: Dockerfile-prod
+    command: sh -c "while ! nc -z backend-db 5432; do sleep 0.1; done; exec gunicorn --workers 3 --bind 0.0.0.0:8000 wsgi:app"
+    volumes:
+      - ./services/backend/:/usr/src/app/
+    ports:
+      - 5001:8000  # Map external port 5001 to internal port 8000
+    environment:
+      - FLASK_APP=project/__init__.py
+      - FLASK_ENV=production
+      - APP_SETTINGS=project.config.ProductionConfig
+      - DATABASE_URL=postgresql://postgres:postgres@backend-db:5432/backend_prod
+    depends_on:
+      - backend-db
+
+  backend-db:
+    image: postgres:13
+    container_name: backend-db
+    volumes:
+      - postgres_volume:/var/lib/postgresql/data
+    ports:
+      - 5435:5432  # Map external port 5435 to internal port 5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=backend_prod
+
+  my-app:
+    container_name: my-app
+    build:
+      context: ./services/client/my-app/
+      dockerfile: Dockerfile-prod-2
+    volumes:
+      - ./services/client/my-app/build:/usr/share/nginx/html  # Mount the build directory for serving static files
+    depends_on:
+      - backend
+
+  nginx:
+    container_name: nginx
+    image: nginx:latest
+    ports:
+      - "8000:80"  # Expose port 8000 on host for accessing Nginx
+    volumes:
+      - ./services/nginx/nginx.conf:/etc/nginx/nginx.conf  # Mount the Nginx configuration file
+      - ./services/client/my-app/build:/usr/share/nginx/html  # Mount the build directory for serving static files
+    depends_on:
+      - backend
+      - my-app
+
+volumes:
+  postgres_volume:

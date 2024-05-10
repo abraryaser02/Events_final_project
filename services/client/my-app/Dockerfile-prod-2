@@ -1,0 +1,19 @@
+# services/client/my-app/Dockerfile-dev2
+
+# Use the official Node.js image as the base image
+FROM node:14-alpine
+
+# Set the working directory in the container
+WORKDIR /usr/src/app
+
+# Copy package.json and package-lock.json into the container
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the application code into the container
+COPY . .
+
+# Command to start the application
+CMD ["npm", "start"]

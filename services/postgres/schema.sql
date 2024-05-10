@@ -1,8 +1,6 @@
 SET max_parallel_maintenance_workers = 60;
 SET max_parallel_workers = 60;
 SET maintenance_work_mem TO '6GB';
-SET max_wal_size = '4GB';  
-SET wal_buffers = '32MB';
 
 -- Ensure the required extensions are installed
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
@@ -59,29 +57,20 @@ CREATE INDEX idx_login ON users (email, password);
 CREATE INDEX idx_users_email ON users (email);
 
 -- Index for events based on start time for ordering and filtering
-CREATE INDEX idx_upcoming_events ON events(start_time) WHERE start_time > NOW();
+CREATE INDEX idx_events_start_time ON events USING btree (start_time);
 
 -- Index for events based on the event ID
 CREATE INDEX idx_events_id_events ON events (id_events);
 
---Indexes on user_to_events for join operations
-CREATE INDEX idx_user_to_events_user_event ON user_to_events(user_id, event_id);
-
-CREATE MATERIALIZED VIEW mv_events_with_likes AS
-SELECT e.id_events, e.name, e.description, e.location, e.start_time, e.end_time, 
-       e.organization, e.contact_information, e.registration_link, e.keywords,
-       COUNT(ue.event_id) AS likes
-FROM events e
-LEFT JOIN user_to_events ue ON e.id_events = ue.event_id
-GROUP BY e.id_events;
-
-CREATE INDEX idx_mv_events_with_likes ON mv_events_with_likes(likes DESC);
+-- Indexes on user_to_events for join operations
+CREATE INDEX idx_user_to_events_user_id ON user_to_events (user_id);
+CREATE INDEX idx_user_to_events_event_id ON user_to_events (event_id);
 
 -- Full-text search index
-CREATE INDEX idx_events_fti ON events USING rum (tsv rum_tsvector_ops);
+CREATE INDEX idx_events_fti ON events USING rum (tsv);
 
 -- Index for fts_word for spelling suggestions
-CREATE INDEX idx_fts_word_rum ON fts_word USING rum (word rum_trgm_ops);
+CREATE INDEX idx_fts_word ON fts_word USING rum (word);
 
 -- Create the function and trigger to update tsvector
 CREATE OR REPLACE FUNCTION update_tsvector() RETURNS trigger AS $$
