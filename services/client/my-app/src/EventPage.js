@@ -42,16 +42,27 @@ function EventPage() {
   const [showFilterPopup, setShowFilterPopup] = useState(false);
   const [checkedKeywords, setCheckedKeywords] = useState([]);
   const [favoritedEvents, setFavoritedEvents] = useState(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
 
-  //fetching data from the backend
+  // Fetching data from the backend
   useEffect(() => {
     async function fetchData() {
-      const eventsResponse = await fetch('http://localhost:5001/all_events');
-      const eventsData = await eventsResponse.json();
-      setEvents(eventsData);
+      setIsLoading(true);
+      try {
+        const eventsResponse = await fetch(`http://localhost:5001/all_events?page=${currentPage}`);
+        const eventsData = await eventsResponse.json();
+        setEvents(eventsData);
+        setIsLoading(false);
+      } catch (error) {
+        setError(error.message);
+        setIsLoading(false);
+      }
     }
     fetchData();
-  }, [currentUser]);
+  }, [currentPage, currentUser]);
 
   useEffect(() => {
     async function fetchFavoritedEvents() {
@@ -200,10 +211,50 @@ function updateFavoritedEvents(result, eventId) {
   // Filter events based on the search query and key events
   const filteredEvents = events.filter(event => 
     (event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
     event.keywords.some(keyword => keyword.toLowerCase().includes(searchQuery.toLowerCase()))) &&
-    (checkedKeywords.length === 0 || // If no keywords are checked, show all events
+    (checkedKeywords.length === 0 || 
     checkedKeywords.some(keyword => event.keywords.includes(keyword)))
   );
+
+  const handleSearch = async (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+  
+    try {
+      if (query.trim() === '') {
+        // Fetch all events when the search query is empty
+        const eventsResponse = await fetch(`http://localhost:5001/all_events?page=${currentPage}`);
+        const eventsData = await eventsResponse.json();
+        setEvents(eventsData);
+        setSuggestions([]);
+      } else {
+        // Fetch search results when there is a query
+        const response = await fetch(`http://localhost:5001/search?query=${query}&page=${currentPage}`);
+        const data = await response.json();
+        setEvents(data.events);
+        setSuggestions(data.suggestions);
+      }
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
+  // Pagination controls
+  const handleNextPage = () => {
+    setCurrentPage(currentPage + 1);
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  // Highlight matched text
+  const createMarkup = (text) => {
+    return { __html: text };
+  };
 
   // Return JSX for rendering
   const imageUrl = profileimg;
@@ -224,7 +275,8 @@ function updateFavoritedEvents(result, eventId) {
           {/* Navigation links */}
           <li><Link to="/events">Events</Link></li>
           <li><Link to="/map">Map</Link></li>
-          <li><Link to="/about">About</Link></li>
+          <li><Link to="/about">People</Link></li>
+          <li><Link to="/favorites">Favorites</Link></li>
           <li><button type= "event-button" button onClick={toggleCreateEventPopup}>Create Event</button></li>
         </ul>
       </div>
@@ -309,14 +361,26 @@ function updateFavoritedEvents(result, eventId) {
         <input
           className="search-input"
           type="text"
-          placeholder="Search by name or keyword"
+          placeholder="Search by name or description"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={handleSearch}
         />
+
+      {suggestions.length > 0 && (
+          <div className="suggestions">
+            <h3>Did you mean:</h3>
+            <ul>
+              {suggestions.map((suggestion, index) => (
+                <li key={index}>{suggestion}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Filter button */}
         <button className="filter-button" onClick={() => setShowFilterPopup(prevState => !prevState)}>Filter</button>
       </div>
+        
         {/* Filter popup container */}
         {showFilterPopup && (
           <div className="filter-popup">
@@ -337,31 +401,42 @@ function updateFavoritedEvents(result, eventId) {
         )}
       </header>
 
-      
+      <div className="pagination">
+          <button onClick={handlePreviousPage} disabled={currentPage === 1}>
+            Previous
+          </button>
+          <span>Page {currentPage}</span>
+          <button onClick={handleNextPage} disabled={events.length < 20}>
+            Next
+          </button>
+      </div>
 
-      <div className="events-list">
-        <ul>
-          {filteredEvents.map(event => (
-            <li key={event.id} className="event">
-              <Link to={`/eventdetail/${event.id}`}>
-                <h3>{event.name}</h3>
-              </Link>
-              <button onClick={() => toggleFavorite(event.id)} className="favorite-button">
-              {favoritedEvents.has(event.id) ? '★' : '☆'}
-              </button>
-              <p>Description: {event.description}</p>
-              <p>Location: {event.location}</p>
-              <p>Start Time: {new Date(event.start_time).toLocaleString()}</p>
-              <p>End Time: {new Date(event.end_time).toLocaleString()}</p>
-              <p>Organization: {event.organization}</p>
-              <p>Contact Information: {event.contact_information}</p>
-              <p>Registration Link: <a href={event.registration_link}>{event.registration_link}</a></p>
-              <p>Keywords: {event.keywords.join(', ')}</p>
-            </li>
-          ))}
-        </ul>
+      <div className="events-container">
+        <div className="events-list">
+          <ul>
+            {filteredEvents.map(event => (
+              <li key={event.id} className="event">
+                <Link to={`/eventdetail/${event.id}`}>
+                  <h3 dangerouslySetInnerHTML={createMarkup(event.name)}></h3>
+                </Link>
+                <button onClick={() => toggleFavorite(event.id)} className="favorite-button">
+                  {favoritedEvents.has(event.id) ? '★' : '☆'}
+                </button>
+                <p>Description: <span dangerouslySetInnerHTML={createMarkup(event.description)}></span></p>
+                <p>Location: {event.location}</p>
+                <p>Start Time: {new Date(event.start_time).toLocaleString()}</p>
+                <p>End Time: {new Date(event.end_time).toLocaleString()}</p>
+                <p>Organization: {event.organization}</p>
+                <p>Contact Information: {event.contact_information}</p>
+                <p>Registration Link: <a href={event.registration_link}>{event.registration_link}</a></p>
+                <p>Keywords: {event.keywords.join(', ')}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
+    
   );
 }
 

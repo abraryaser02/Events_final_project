@@ -25,7 +25,7 @@ function MapPage() {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const claremont = { lng: -117.71350614401385, lat: 34.09932899451676 };
-  const [zoom] = useState(15);
+  const [zoom] = useState(3);
   maptilersdk.config.apiKey = maptilerApiKey;
 
   // Set default response language and region (optional).
@@ -47,7 +47,7 @@ function MapPage() {
         //handle successful response
         const markerData = await Promise.all(response.data.map(async (eventInfo) => {
           try {
-            const { results } = await fromAddress(eventInfo.location + " " + "Claremont")
+            const { results } = await fromAddress(eventInfo.location)
             const { lat, lng } = results[0].geometry.location;
             //eventInfo.coordinates = [lng, lat]; // Assigning coordinates to eventInfo
             //console.log(eventInfo.location, [lng, lat])
@@ -149,7 +149,8 @@ function MapPage() {
         <ul>
         <li><Link to="/events">Events</Link></li>
         <li><Link to="/map">Map</Link></li>
-        <li><Link to="/about">About</Link></li>
+        <li><Link to="/about">Friends</Link></li>
+        <li><Link to="/favorites">Favorites</Link></li>
         </ul>
       </div>
       <header className="content">

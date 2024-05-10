@@ -4,6 +4,8 @@ import os
 from datetime import datetime, timedelta
 from random import choice
 from flask import Flask, jsonify, request, make_response, session, redirect, url_for
+from datetime import datetime
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine, text
 from flask_cors import CORS
 from flask_socketio import SocketIO
@@ -17,6 +19,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 app.config.from_object(os.getenv('APP_SETTINGS', 'project.config.DevelopmentConfig'))
 engine = create_engine(app.config['DATABASE_URI'])
 
+db = SQLAlchemy(app)
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -78,9 +81,9 @@ def create_user():
 @app.route('/all_users', methods=['GET'])
 def get_users():
     with engine.connect() as connection:
-        users = connection.execute(text("SELECT * FROM users")).fetchall()
-        users_list = [{'id': user.id_users, 'email': user.email} for user in users]
-    return jsonify(users_list)
+        users = connection.execute(text("SELECT id_users, email FROM users")).fetchall()
+        users_list = [{'id_users': user.id_users, 'email': user.email} for user in users]
+        return jsonify(users_list)
 
 
 #get user by id
@@ -91,7 +94,7 @@ def get_user(user_id):
         if user is None:
             return jsonify({'message': 'User not found'}), 404
         user_data = {
-            'id_users': user.id,
+            'id_users': user.id_users,
             'email': user.email,
             'password': user.password
         }
@@ -105,10 +108,10 @@ def create_event():
     sql = """
         INSERT INTO events 
             (name, description, location, start_time, end_time, organization, 
-             contact_information, registration_link, keywords)
+             contact_information, registration_link, keywords, tsv)
         VALUES 
             (:name, :description, :location, :start_time, :end_time, :organization, 
-             :contact_information, :registration_link, :keywords)
+             :contact_information, :registration_link, :keywords, to_tsvector('english', :name || ' ' || :description))
         RETURNING id_events;
     """
     
@@ -135,15 +138,26 @@ def create_event():
 
 @app.route('/all_events', methods=['GET'])
 def get_events():
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    offset = (page - 1) * per_page
+
     with engine.connect() as connection:
-        events = connection.execute(text("SELECT * FROM events")).fetchall()
-        events_list = [{'id': event.id_events, 
-                        'name': event.name, 
+        current_time = datetime.utcnow()
+        events = connection.execute(text("""
+            SELECT * FROM events 
+            WHERE start_time >= :current_time 
+            ORDER BY start_time 
+            LIMIT :per_page OFFSET :offset
+        """), {'current_time': current_time, 'per_page': per_page, 'offset': offset}).fetchall()
+        
+        events_list = [{'id': event.id_events,
+                        'name': event.name,
                         'description': event.description,
-                        'location': event.location, 
-                        'start_time': event.start_time, 
+                        'location': event.location,
+                        'start_time': event.start_time,
                         'end_time': event.end_time,
-                        'organization': event.organization, 
+                        'organization': event.organization,
                         'contact_information': event.contact_information,
                         'registration_link': event.registration_link,
                         'keywords': event.keywords} for event in events]
@@ -207,6 +221,46 @@ def events_by_user(user_id):
     return jsonify(events_list)
 
 
+@app.route('/events_by_favorites', methods=['GET'])
+def get_top_favorited_events():
+    try:
+        # SQL query to select the top 10 most favorited events
+        query = """
+            SELECT e.id_events, e.name, e.description, e.location, e.start_time, e.end_time, 
+                   e.organization, e.contact_information, e.registration_link, e.keywords,
+                   COUNT(ue.event_id) AS likes
+            FROM events e
+            LEFT JOIN user_to_events ue ON e.id_events = ue.event_id
+            GROUP BY e.id_events
+            ORDER BY likes DESC
+            LIMIT 10
+        """
+        with engine.connect() as connection:
+            # Execute the SQL query
+            events = connection.execute(text(query)).fetchall()
+            if not events:
+                return jsonify({'message': 'No events found'}), 404
+
+            # Convert the result to a list of dictionaries for JSON serialization
+            events_list = [{'id': event.id_events, 
+                            'name': event.name, 
+                            'description': event.description,
+                            'location': event.location, 
+                            'start_time': event.start_time, 
+                            'end_time': event.end_time,
+                            'organization': event.organization, 
+                            'contact_information': event.contact_information,
+                            'registration_link': event.registration_link,
+                            'keywords': event.keywords,
+                            'favorites': event.likes
+                        } for event in events]
+
+        return jsonify(events_list)
+    except Exception as e:
+        # Handle exceptions gracefully
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/toggle_user_event', methods=['POST'])
 def toggle_user_event():
     data = request.json
@@ -243,6 +297,61 @@ def toggle_user_event():
             """), {'user_id': user_id, 'event_id': event_id})
             connection.commit()
             return jsonify({'message': 'User added to event successfully', 'isFavorited': True}), 201
+        
+    # @app.route(get favorites by event)
+    # view friends on about page 
+
+    # most recent messages view, prev next toggle buttons
+
+@app.route('/search', methods=['GET'])
+def search():
+    query = request.args.get('query', '').strip()
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    offset = (page - 1) * per_page
+
+    with engine.connect() as connection:
+        if query:
+            # FTS query
+            search_query = text("""
+                SELECT id_events, 
+                       ts_headline('english', name, plainto_tsquery(:query)) AS name,
+                       ts_headline('english', description, plainto_tsquery(:query)) AS description,
+                       location, start_time, end_time, organization, contact_information, 
+                       registration_link, keywords
+                FROM events 
+                WHERE to_tsvector('english', name || ' ' || description) @@ plainto_tsquery(:query)
+                ORDER BY ts_rank(to_tsvector('english', name || ' ' || description), plainto_tsquery(:query)) DESC
+                LIMIT :per_page OFFSET :offset;
+            """)
+            events = connection.execute(search_query, {'query': query, 'per_page': per_page, 'offset': offset}).fetchall()
+            
+            # Spelling suggestion query
+            suggestions_query = text("""
+                SELECT suggestion FROM get_spelling_suggestions(:query);
+            """)
+            suggestions = connection.execute(suggestions_query, {'query': query}).fetchall()
+        else:
+            # If query is empty, return all events
+            events_query = text("""
+                SELECT id_events, name, description, location, start_time, end_time, organization, contact_information, 
+                       registration_link, keywords
+                FROM events
+                ORDER BY start_time
+                LIMIT :per_page OFFSET :offset;
+            """)
+            events = connection.execute(events_query, {'per_page': per_page, 'offset': offset}).fetchall()
+            suggestions = []
+
+    events_list = [{'id': event.id_events, 'name': event.name, 'description': event.description,
+                    'location': event.location, 'start_time': event.start_time, 'end_time': event.end_time,
+                    'organization': event.organization, 'contact_information': event.contact_information,
+                    'registration_link': event.registration_link, 'keywords': event.keywords} 
+                   for event in events]
+    suggestions_list = [suggestion.suggestion for suggestion in suggestions]
+
+    return jsonify({'events': events_list, 'suggestions': suggestions_list})
+    
 
 
 if __name__ == '__main__':

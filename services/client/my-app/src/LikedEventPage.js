@@ -221,7 +221,7 @@ function EventPage({}) {
           {/* Navigation links */}
           <li><Link to="/events">Events</Link></li>
           <li><Link to="/map">Map</Link></li>
-          <li><Link to="/about">About</Link></li>
+          <li><Link to="/about">People</Link></li>
         </ul>
       </div>
 

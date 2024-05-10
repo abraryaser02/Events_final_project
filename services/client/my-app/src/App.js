@@ -8,9 +8,10 @@ import LikedEventPage from './LikedEventPage';
 import LoginPage from './Login';
 import Register from './Register';
 import MapPage from './MapPage';
+import UserFav from './UserFav';
 import NotFoundPage from './NotFoundPage';
 import { UserProvider } from './UserContext';
-import ProtectedRoute from './ProtectedRoute'; // Make sure this is imported
+import ProtectedRoute from './ProtectedRoute'; 
 
 function App() {
   return (
@@ -37,6 +38,11 @@ function App() {
             <Route path="/about" element={
               <ProtectedRoute>
                 <AboutPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/favorites" element={
+              <ProtectedRoute>
+                <UserFav />
               </ProtectedRoute>
             } />
             <Route path="/likedevents" element={

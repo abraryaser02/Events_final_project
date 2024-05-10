@@ -1,0 +1,56 @@
+name: Backend Test
+
+on: [push, pull_request]
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: backend_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        # Wait until postgres is ready before running the tests
+        healthcheck:
+          test: ["CMD-SHELL", "pg_isready -U postgres"]
+          interval: 10s
+          timeout: 5s
+          retries: 5
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r services/backend/requirements.txt
+
+    - name: Create test database
+      run: |
+        psql -U postgres -c "CREATE DATABASE backend_test;"
+
+    - name: Run tests
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/backend_dev
+        DATABASE_TEST_URL: postgres://postgres:postgres@localhost:5432/backend_test
+        APP_SETTINGS: project.config.TestingConfig
+        PYTHONPATH: services/backend
+      run: |
+        cd services/backend
+        pytest
