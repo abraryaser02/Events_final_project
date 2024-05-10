@@ -3,10 +3,10 @@ name: Python Tests
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
 
 jobs:
   test:
@@ -22,7 +22,7 @@ jobs:
           POSTGRES_DB: backend_test
         ports:
           - 5435:5432
-        options: --health-check pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        options: --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
       - name: Checkout code
