@@ -195,11 +195,11 @@ def delete_event(event_id):
 @app.route('/events_by_user/<int:user_id>', methods=['GET'])
 def events_by_user(user_id):
     query = """
-    SELECT e.id_events, e.name, e.description, e.location, e.start_time, e.end_time, 
-           e.organization, e.contact_information, e.registration_link, e.keywords
-    FROM events e
-    JOIN user_to_events ue ON ue.event_id = e.id_events
-    WHERE ue.user_id = :user_id
+        SELECT e.id_events, e.name, e.description, e.location, e.start_time, e.end_time, 
+            e.organization, e.contact_information, e.registration_link, e.keywords
+        FROM events e
+        JOIN user_to_events ue ON ue.event_id = e.id_events
+        WHERE ue.user_id = :user_id
     """
     with engine.connect() as connection:
         events = connection.execute(text(query), {'user_id': user_id}).fetchall()
@@ -226,14 +226,9 @@ def get_top_favorited_events():
     try:
         # SQL query to select the top 10 most favorited events
         query = """
-            SELECT e.id_events, e.name, e.description, e.location, e.start_time, e.end_time, 
-                   e.organization, e.contact_information, e.registration_link, e.keywords,
-                   COUNT(ue.event_id) AS likes
-            FROM events e
-            LEFT JOIN user_to_events ue ON e.id_events = ue.event_id
-            GROUP BY e.id_events
+            SELECT * FROM mv_events_with_likes
             ORDER BY likes DESC
-            LIMIT 10
+            LIMIT 10;
         """
         with engine.connect() as connection:
             # Execute the SQL query
@@ -269,6 +264,10 @@ def toggle_user_event():
 
     if not user_id or not event_id:
         return jsonify({'message': 'Missing user_id or event_id'}), 400
+    
+    with engine.connect() as connection:
+        connection.execute(text("REFRESH MATERIALIZED VIEW mv_events_with_likes;"))
+        connection.commit()
 
     with engine.connect() as connection:
         # Check if both user and event exist
@@ -298,10 +297,6 @@ def toggle_user_event():
             connection.commit()
             return jsonify({'message': 'User added to event successfully', 'isFavorited': True}), 201
         
-    # @app.route(get favorites by event)
-    # view friends on about page 
-
-    # most recent messages view, prev next toggle buttons
 
 @app.route('/search', methods=['GET'])
 def search():

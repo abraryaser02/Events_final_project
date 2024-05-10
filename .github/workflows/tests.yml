@@ -4,7 +4,6 @@ on: [push, pull_request]
 
 jobs:
   test:
-
     runs-on: ubuntu-latest
 
     services:
@@ -18,33 +17,40 @@ jobs:
           - 5432:5432
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.12'
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.12'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r services/backend/requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r services/backend/requirements.txt
 
-    - name: docker
-      run: |
-        docker-compose -f docker-compose-dev.yml up --build -d
-        sleep 20
+      - name: Wait for Postgres
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for postgres container..."
+            sleep 20
+          done
 
-    - name: Run tests
-      env:
-        DATABASE_URL: postgres://postgres:postgres@localhost:5432/backend_dev
-        DATABASE_TEST_URL: postgres://postgres:postgres@localhost:5432/backend_test
-        APP_SETTINGS: project.config.TestingConfig
-        PYTHONPATH: services/backend
-      run: |
-        cd services/backend
-        export APP_SETTINGS=project.config.TestingConfig 
-        export PYTHONPATH=$(pwd)
-        export DATABASE_TEST_URL=postgresql://postgres:postgres@localhost:5435/backend_test
-        export DATABASE_URL=postgresql://postgres:postgres@localhost:5435/backend_dev   
-        pytest
+      - name: Set up Docker
+        run: |
+          docker-compose -f docker-compose-dev.yml up --build -d
+          sleep 20
+
+      - name: Run tests
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/backend_dev
+          DATABASE_TEST_URL: postgres://postgres:postgres@localhost:5432/backend_test
+          APP_SETTINGS: project.config.TestingConfig
+          PYTHONPATH: services/backend
+        run: |
+          cd services/backend
+          export APP_SETTINGS=project.config.TestingConfig
+          export PYTHONPATH=$(pwd)
+          export DATABASE_TEST_URL=postgresql://postgres:postgres@localhost:5432/backend_test
+          export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/backend_dev
+          pytest
