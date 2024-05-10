@@ -10,8 +10,8 @@ CREATE EXTENSION IF NOT EXISTS RUM;
 
 -- Drop tables if they already exist
 DROP TABLE IF EXISTS user_to_events;
-DROP TABLE IF NOT EXISTS events;
-DROP TABLE IF NOT EXISTS users;
+DROP TABLE IF EXISTS events;
+DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS fts_word;
 
 -- Create the users table
