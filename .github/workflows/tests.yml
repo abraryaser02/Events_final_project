@@ -34,6 +34,8 @@ jobs:
           sudo apt-get install -y git build-essential postgresql-server-dev-13 postgresql-13
           git clone https://github.com/postgrespro/rum /tmp/rum
           cd /tmp/rum
+          export PATH=/usr/lib/postgresql/13/bin:$PATH
+          export PG_CONFIG=/usr/lib/postgresql/13/bin/pg_config
           make USE_PGXS=1
           sudo make USE_PGXS=1 install
           
