@@ -35,12 +35,23 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install dependencies and set up RUM
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r services/backend/requirements.txt
+
+      - name: Add PostgreSQL APT Repository
+        run: |
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
           sudo apt-get update
-          sudo apt-get install -y git build-essential postgresql-server-dev-13 postgresql-13-rum
+
+      - name: Install PostgreSQL server dev and build tools
+        run: |
+          sudo apt-get install -y postgresql-server-dev-13 git build-essential
+
+      - name: Clone and build RUM extension
+        run: |
           git clone https://github.com/postgrespro/rum /tmp/rum
           cd /tmp/rum
           make USE_PGXS=1
@@ -62,11 +73,3 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5435/backend_dev
           DATABASE_TEST_URL: postgresql://postgres:postgres@localhost:5435/backend_test
           APP_SETTINGS: project.config.TestingConfig
-          PYTHONPATH: services/backend
-        run: |
-          cd services/backend
-          export APP_SETTINGS=project.config.TestingConfig
-          export PYTHONPATH=$(pwd)
-          export DATABASE_TEST_URL=postgresql://postgres:postgres@localhost:5435/backend_test
-          export DATABASE_URL=postgresql://postgres:postgres@localhost:5435/backend_dev
-          pytest
