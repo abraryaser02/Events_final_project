@@ -14,62 +14,49 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: backend_test
         ports:
-          - 5435:5432
+          - 5432:5432
 
     steps:
       - uses: actions/checkout@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
 
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.12'
 
-      - name: Install dependencies
+      - name: Install dependencies and RUM extension
         run: |
           python -m pip install --upgrade pip
           pip install -r services/backend/requirements.txt
-
-      - name: Add PostgreSQL APT Repository
-        run: |
-          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
           sudo apt-get update
-
-      - name: Install PostgreSQL server dev and build tools
-        run: |
-          sudo apt-get install -y postgresql-server-dev-13 git build-essential
-
-      - name: Clone and build RUM extension
-        run: |
+          sudo apt-get install -y git build-essential postgresql-server-dev-13
           git clone https://github.com/postgrespro/rum /tmp/rum
           cd /tmp/rum
           make USE_PGXS=1
           sudo make USE_PGXS=1 install
-
+          
       - name: Wait for Postgres
         run: |
-          until pg_isready -h localhost -p 5435 -U postgres; do
+          until pg_isready -h localhost -p 5432 -U postgres; do
             echo "Waiting for postgres container..."
             sleep 20
           done
 
-      - name: Run Docker Compose
+      - name: Set up Docker
         run: |
           docker-compose -f docker-compose-dev.yml up --build -d
+          sleep 20
 
       - name: Run tests
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5435/backend_dev
-          DATABASE_TEST_URL: postgresql://postgres:postgres@localhost:5435/backend_test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/backend_dev
+          DATABASE_TEST_URL: postgres://postgres:postgres@localhost:5432/backend_test
           APP_SETTINGS: project.config.TestingConfig
+          PYTHONPATH: services/backend
+        run: |
+          cd services/backend
+          export APP_SETTINGS=project.config.TestingConfig
+          export PYTHONPATH=$(pwd)
+          export DATABASE_TEST_URL=postgresql://postgres:postgres@localhost:5432/backend_test
+          export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/backend_dev
+          pytest
