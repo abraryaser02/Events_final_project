@@ -30,10 +30,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      - name: Build backend image
-        run: |
-          docker build -t backend-dev:latest -f services/backend/Dockerfile-dev .
-
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
