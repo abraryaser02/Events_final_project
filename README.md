@@ -1,7 +1,7 @@
 
 # Events Final Project
 
-This project is a scalable web application for managing and displaying events globally. It is built with a React frontend and a Python backend, and uses PostgreSQL for data storage. Docker is used to containerize the application for easy deployment and scalability.
+This project is a scalable web application for managing and displaying events happening near you globally. It is built with a React frontend and a Python backend, and uses PostgreSQL for data storage. Docker is used to containerize the application for easy deployment and scalability.
 
 ## Project Structure
 
