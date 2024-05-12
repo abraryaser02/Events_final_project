@@ -20,8 +20,8 @@ This project is a scalable web application for managing and displaying events ha
 
 1. **Clone the repository:**
     ```sh
-    git clone <repository-url>
-    cd Events_final_project_2
+    git clone [<repository-url>](https://github.com/abraryaser02/Network.git)
+    cd Network
     ```
 
 2. **Build and run the containers:**
